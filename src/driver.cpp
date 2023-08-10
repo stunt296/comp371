@@ -93,6 +93,64 @@ vec3 cameraPosition(20.0f, 20.0f, 20.0f);
 vec3 cameraLookAt(0.0f, -18.0f, 0.0f);
 vec3 cameraUp(0.0f, 1.0f, 0.0f);
 
+bool checkCollision(const glm::vec3& newPosition) {
+    // Check collision with trees
+    const int numTrees = 625; // Update with the actual number of trees in the scene (to be replaced with treeCounter)
+    //std::cout << "Trees:  " << treeCounter << std::endl;
+
+    // Check collision with the trunk, layer1, and layer2 of each tree
+    for (int i = 0; i < numTrees; ++i) {
+        for (int j = 0; j < numTrees; ++j) {
+            // Check collision with the trunk of the tree
+            glm::vec3 treeTrunkPosition(-350.0f + j * 35.0f, 7.5f, -350.0f + i * 35.0f);
+            glm::vec3 treeTrunkScale(1.5f, 15.0f, 1.5f);
+            if (newPosition.x > treeTrunkPosition.x - treeTrunkScale.x &&
+                newPosition.x < treeTrunkPosition.x + treeTrunkScale.x &&
+                newPosition.y > treeTrunkPosition.y &&
+                newPosition.y < treeTrunkPosition.y + treeTrunkScale.y &&
+                newPosition.z > treeTrunkPosition.z - treeTrunkScale.z &&
+                newPosition.z < treeTrunkPosition.z + treeTrunkScale.z) {
+                std::cout << "Collision detected with trunk of tree " << i << std::endl;
+                return true; // Collision detected with tree trunk
+            }
+
+            // Check collision with layer1 of the tree
+            glm::vec3 treeLayer1Position(-350.0f + j * 35.0f, 15.50f, -350.0f + i * 35.0f);
+            glm::vec3 treeLayer1Scale(12.0f, 1.0f, 12.0f);
+            if (newPosition.x > treeLayer1Position.x - treeLayer1Scale.x &&
+                newPosition.x < treeLayer1Position.x + treeLayer1Scale.x &&
+                newPosition.y > treeLayer1Position.y &&
+                newPosition.y < treeLayer1Position.y + treeLayer1Scale.y &&
+                newPosition.z > treeLayer1Position.z - treeLayer1Scale.z &&
+                newPosition.z < treeLayer1Position.z + treeLayer1Scale.z) {
+                std::cout << "Collision detected with layer1 of tree " << i << std::endl;
+                return true; // Collision detected with tree layer1
+            }
+
+            // Check collision with layer2 of the tree
+            glm::vec3 treeLayer2Position(-350.0f + j * 35.0f, 17.0f, -350.0f + i * 35.0f);
+            glm::vec3 treeLayer2Scale(6.0f, 2.0f, 6.0f);
+            if (newPosition.x > treeLayer2Position.x - treeLayer2Scale.x &&
+                newPosition.x < treeLayer2Position.x + treeLayer2Scale.x &&
+                newPosition.y > treeLayer2Position.y &&
+                newPosition.y < treeLayer2Position.y + treeLayer2Scale.y &&
+                newPosition.z > treeLayer2Position.z - treeLayer2Scale.z &&
+                newPosition.z < treeLayer2Position.z + treeLayer2Scale.z) {
+                std::cout << "Collision detected with layer2 of tree " << i << std::endl;
+                return true; // Collision detected with tree layer2
+            }
+        }
+    }
+
+    // Check collision with ground (assuming ground is at y = 0)
+    if (newPosition.y < -0.01f) {
+        std::cout << "Collision detected with ground" << std::endl;
+        return true; // Collision with ground
+    }
+
+    return false; // No collision
+}
+
 int main(int argc, char*argv[])
 {
     // Initialize GLFW and OpenGL version
@@ -319,24 +377,36 @@ int main(int argc, char*argv[])
         
         
         // Use camera lookat and side vectors to update positions with ASDW
-        if (glfwGetKey(window, GLFW_KEY_W ) == GLFW_PRESS)
+        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) // move camera to the left
         {
-            cameraPosition += cameraLookAt * dt * currentCameraSpeed;
+            glm::vec3 newCameraPosition = cameraPosition - cameraSideVector * currentCameraSpeed * dt;
+
+            if (!checkCollision(newCameraPosition))  // Implement this function to check for collisions
+                cameraPosition = newCameraPosition;
         }
-        
-        if (glfwGetKey(window, GLFW_KEY_S ) == GLFW_PRESS)
+
+        if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) // move camera to the right
         {
-            cameraPosition -= cameraLookAt * dt * currentCameraSpeed;
+            glm::vec3 newCameraPosition = cameraPosition + cameraSideVector * currentCameraSpeed * dt;
+
+            if (!checkCollision(newCameraPosition))  // Implement this function to check for collisions
+                cameraPosition = newCameraPosition;
         }
-        
-        if (glfwGetKey(window, GLFW_KEY_D ) == GLFW_PRESS)
+
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) // move camera backward
         {
-            cameraPosition += cameraSideVector * dt * currentCameraSpeed;
+            glm::vec3 newCameraPosition = cameraPosition - cameraLookAt * currentCameraSpeed * dt;
+
+            if (!checkCollision(newCameraPosition))  // Implement this function to check for collisions
+                cameraPosition = newCameraPosition;
         }
-        
-        if (glfwGetKey(window, GLFW_KEY_A ) == GLFW_PRESS)
+
+        if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) // move camera forward
         {
-            cameraPosition -= cameraSideVector * dt * currentCameraSpeed;
+            glm::vec3 newCameraPosition = cameraPosition + cameraLookAt * currentCameraSpeed * dt;
+
+            if (!checkCollision(newCameraPosition))  // Implement this function to check for collisions
+                cameraPosition = newCameraPosition;
         }
         mat4 viewMatrix =  lookAt(cameraPosition, cameraPosition + cameraLookAt, cameraUp);
         setViewMatrix(texturedShaderProgram, viewMatrix);
