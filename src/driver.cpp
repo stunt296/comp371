@@ -21,6 +21,7 @@
 #include "skyBox.h"
 #include "ground.h"
 #include "tree.h"
+#include "chunk.h"
 
 using namespace glm;
 using namespace std;
@@ -78,11 +79,20 @@ void setWorldMatrix(int shaderProgram, mat4 worldMatrix)
     glUniformMatrix4fv(worldMatrixLocation, 1, GL_FALSE, &worldMatrix[0][0]);
 }
 
+void setWorldTransparency(int shaderProgram, float transparent)
+{
+    glUseProgram(shaderProgram);
+    GLuint transparencyLocation = glGetUniformLocation(shaderProgram, "is_transparent");
+    glUniform1f(transparencyLocation, transparent);
+}
+
 
 //////////
 // initializing parameters
 
 const unsigned int DEPTH_MAP_TEXTURE_SIZE = 1024;
+const int chunkSize = 45;
+const int chunkHeight = 32;
 
 // texture handling
 bool LightEnabled = true;
@@ -156,19 +166,19 @@ int main(int argc, char*argv[])
     // Initialize GLFW and OpenGL version
     glfwInit();
 
-#if defined(__APPLE__)
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#else
-    // On windows, we set OpenGL version to 2.1, to support more hardware
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-#endif
+    #if defined(__APPLE__)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    #else
+        // On windows, we set OpenGL version to 2.1, to support more hardware
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    #endif
 
     // Create Window and rendering context using GLFW, resolution is 800x600
-    GLFWwindow* window = glfwCreateWindow(1024, 768, "assignment 2", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1024, 768, "Walk Through a Procedurelly Created World", NULL, NULL);
     if (window == NULL)
     {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -188,16 +198,17 @@ int main(int argc, char*argv[])
 
    
     // Load Textures
-#if defined(__APPLE__)
-    GLuint cementTextureID = loadTexture("assets/Textures/cement.jpg");
-    GLuint SkyTextureID = loadTexture("assets/Textures/sky.jpg");
-#else
-    GLuint cementTextureID = loadTexture("../Assets/Textures/cement.jpg");
-    GLuint SkyTextureID = loadTexture("../Assets/Textures/sky.jpg");
-#endif
+    #if defined(__APPLE__)
+        GLuint cementTextureID = loadTexture("assets/Textures/cement.jpg");
+        GLuint SkyTextureID = loadTexture("assets/Textures/sky.jpg");
+    #else
+        GLuint cementTextureID = loadTexture("../Assets/Textures/cement.jpg");
+        GLuint SkyTextureID = loadTexture("../Assets/Textures/sky.jpg");
+    #endif
 
     // Black background
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    
     
     // Compile and link shaders here ...
     int texturedShaderProgram = compileAndLinkShaders(getTexturedVertexShaderSource(), getTexturedFragmentShaderSource());
@@ -231,6 +242,9 @@ int main(int argc, char*argv[])
 
 	// Set view matrix on both shaders
 	SetUniformMat4(texturedShaderProgram, "view_matrix", viewMatrix);
+
+    // set transparency
+    setWorldTransparency(texturedShaderProgram, 0.0f); // remove transparent 
 
 	float lightAngleOuter = radians(30.0f);
 	float lightAngleInner = radians(20.0f);
@@ -291,7 +305,7 @@ int main(int argc, char*argv[])
         // Each frame, reset color of each pixel to glClearColor
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        // Draw textured geometry
+        // textured geometry
         glUseProgram(texturedShaderProgram);
 
         glActiveTexture(GL_TEXTURE0);
@@ -301,7 +315,7 @@ int main(int argc, char*argv[])
 
         SetUniformMat4(texturedShaderProgram, "transform_in_light_space", lightProjMatrix * lightViewMatrix);
 
-		// turning texture on and off(needs to be before drawing section)
+		// turning texture on and off(needs to be before rendering section)
 		if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
 		{
 			LightEnabled = !LightEnabled;
@@ -322,8 +336,9 @@ int main(int argc, char*argv[])
         //============================================= DRAW OBJECTS =============================================================
 
         renderSkyBox(SkyTextureID, texturedShaderProgram, texturedCubeVAO );
-        renderGround(texturedShaderProgram, texturedCubeVAO);
-        renderTree(texturedShaderProgram, texturedCubeVAO);
+        //renderGround(texturedShaderProgram, texturedCubeVAO);
+        //renderTree(texturedShaderProgram, texturedCubeVAO);
+        renderChunk(texturedShaderProgram, texturedCubeVAO, chunkSize, chunkHeight);
 
         
         // End Frame
@@ -468,7 +483,7 @@ const char* getTexturedFragmentShaderSource() //use this shader as the fragment 
 		"uniform vec3 light_direction;"
 		"uniform vec3 object_color;"
 
-		"const float shading_ambient_strength = 0.1;"
+		"const float shading_ambient_strength = 0.6;"
 		"const float shading_diffuse_strength = 0.6;"
 		"const float shading_specular_strength = 0.5;"
 
@@ -500,6 +515,7 @@ const char* getTexturedFragmentShaderSource() //use this shader as the fragment 
 		"return shading_specular_strength * light_color_arg * pow(max(dot(reflect_light_direction, view_direction), 0.0f), 32);"
 		"}"
 
+
 		"void main()"
 		"{"
 		"	vec3 light_color = vec3(1.0f, 1.0f, 1.0f);"
@@ -519,6 +535,8 @@ const char* getTexturedFragmentShaderSource() //use this shader as the fragment 
 		"   } else if (is_tex == 1.0) {"
 		"       FragColor = textureColor * vec4(final_color_no_light.r, final_color_no_light.g, final_color_no_light.b, 1.0f);"
 		"   }"
+        "   if (is_transparent == 1.0f) FragColor.w =0.2f;"
+        "       else FragColor.w = 1.0f;"
 		
 		"}";
 }
