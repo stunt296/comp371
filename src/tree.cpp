@@ -34,7 +34,7 @@ void renderTree(int shaderProgram, int vao)
     // draw
     glBindTexture(GL_TEXTURE_2D, cementTextureID);
 
-    		//Draws TREE TRUNK
+    	//Draws TREE TRUNK
 		glBindTexture(GL_TEXTURE_2D, cementTextureID);
         for (int i = 0; i < 25; ++i) {
             for (int j = 0; j < 25; ++j) {
@@ -45,6 +45,7 @@ void renderTree(int shaderProgram, int vao)
             }
         }
 
+        // Drams TREE LEAVES
         glBindTexture(GL_TEXTURE_2D, cementTextureID);
         for (int i = 0; i < 25; ++i) {
             for (int j = 0; j < 25; ++j) {

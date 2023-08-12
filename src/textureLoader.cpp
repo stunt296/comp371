@@ -13,6 +13,53 @@ using namespace std;
 
 #include "textureLoader.h"
 
+
+float** generateHeightmap(std::string filename, int& width, int& height) {
+    
+        // Load image
+    #if defined(__APPLE__)
+        std::string folderPath = "assets/Textures/";
+    #else
+      std::string folderPath = "../Assets/Textures/";
+    #endif
+
+    std::string imagePath = folderPath + filename;
+
+    // Load the image using stb_image
+    int channels;
+    unsigned char* imageData = stbi_load(imagePath.c_str(), &width, &height, &channels, 1);
+
+    // Create the 2D array to store height values
+    float** heightmap = new float*[width];
+    for (int i = 0; i < width; ++i) {
+        heightmap[i] = new float[height];
+    }
+
+    // Define the desired height range
+    const float minHeight = 0.0f;
+    const float maxHeight = 20.0f;
+
+    // Process imageData and populate the heightmap array
+    for (int x = 0; x < width; ++x) {
+        for (int z = 0; z < height; ++z) {
+            // Calculate grayscale value and map to height range
+            unsigned char grayscaleValue = imageData[x * height + z];
+            float normalizedHeight = static_cast<float>(grayscaleValue) / 255.0f;
+            float height = minHeight + normalizedHeight * (maxHeight - minHeight); // Map to desired range
+
+            // Store height value in heightmap
+            heightmap[x][z] = height;
+        }
+    }
+
+    // Clean up the loaded image data
+    stbi_image_free(imageData);
+
+    // Return the generated heightmap array
+    return heightmap;
+}
+
+
 GLuint loadTexture(const char *filename)
 {
   // Step1 Create and bind textures
