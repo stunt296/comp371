@@ -102,7 +102,7 @@ std::vector<Position3D> createTreePositions(int SIZE, HeightMap map)
 {
     // initialize heightmap
     float** heightmap = map.heightmap;
-    const int waterLevel = findSmallestValue(heightmap, SIZE, SIZE) + 1;
+    const int waterLevel = findSmallestValue(heightmap, SIZE, SIZE) + 4;
 
     // inti treePos
     std::vector<Position3D> treePosition;
