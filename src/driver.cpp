@@ -3,6 +3,7 @@
 #include <list>
 #include <algorithm>
 #include <vector>
+#include <string>
 #include <glm/gtc/type_ptr.hpp>
 #include <random>
 #define GLEW_STATIC 1   // This allows linking with Static Library on Windows, without DLL
@@ -109,59 +110,51 @@ HeightMap map = initHeightMap();
 // tree position map
 std::vector<Position3D>  treePositions = createTreePositions(chunkSize, map);
 
-bool checkCollision(const glm::vec3& newPosition) {
-    // Check collision with trees
-    const int numTrees = getTreeCount(); // Update with the actual number of trees in the scene (to be replaced with treeCounter)
-    //std::cout << "Trees:  " << treeCounter << std::endl;
+bool checkCollision(const glm::vec3& newPosition, const std::vector<Position3D>& treePosition, HeightMap map, int CHUNK_SIZE) {
+    // Check collision with the different parts of the trees
+    const float treeSize = 3.0f; // Adjust as needed
 
-    // Check collision with the trunk, layer1, and layer2 of each tree
-    for (int i = 0; i < numTrees; ++i) {
-        for (int j = 0; j < numTrees; ++j) {
-            // Check collision with the trunk of the tree
-            glm::vec3 treeTrunkPosition(-350.0f + j * 35.0f, 7.5f, -350.0f + i * 35.0f);
-            glm::vec3 treeTrunkScale(1.5f, 15.0f, 1.5f);
-            if (newPosition.x > treeTrunkPosition.x - treeTrunkScale.x &&
-                newPosition.x < treeTrunkPosition.x + treeTrunkScale.x &&
-                newPosition.y > treeTrunkPosition.y &&
-                newPosition.y < treeTrunkPosition.y + treeTrunkScale.y &&
-                newPosition.z > treeTrunkPosition.z - treeTrunkScale.z &&
-                newPosition.z < treeTrunkPosition.z + treeTrunkScale.z) {
-                std::cout << "Collision detected with trunk of tree " << i << std::endl;
-                return true; // Collision detected with tree trunk
-            }
+    for (const Position3D& treePos : treePosition) {
+        // Check collision with the trunk of the tree
+        glm::vec3 treeTrunkPosition(treePos.x, treePos.y + 2.5f, treePos.z);
+        glm::vec3 treeTrunkScale(1.0f, 5.0f, 1.0f);
+        if (newPosition.x > treeTrunkPosition.x - treeSize && newPosition.x < treeTrunkPosition.x + treeSize &&
+            newPosition.y > treeTrunkPosition.y && newPosition.y < treeTrunkPosition.y + treeTrunkScale.y &&
+            newPosition.z > treeTrunkPosition.z - treeSize && newPosition.z < treeTrunkPosition.z + treeSize) {
+            std::cout << "Collision detected with trunk of tree" << std::endl;
+            return true; // Collision detected with tree trunk
+        }
 
-            // Check collision with layer1 of the tree
-            glm::vec3 treeLayer1Position(-350.0f + j * 35.0f, 15.50f, -350.0f + i * 35.0f);
-            glm::vec3 treeLayer1Scale(12.0f, 1.0f, 12.0f);
-            if (newPosition.x > treeLayer1Position.x - treeLayer1Scale.x &&
-                newPosition.x < treeLayer1Position.x + treeLayer1Scale.x &&
-                newPosition.y > treeLayer1Position.y &&
-                newPosition.y < treeLayer1Position.y + treeLayer1Scale.y &&
-                newPosition.z > treeLayer1Position.z - treeLayer1Scale.z &&
-                newPosition.z < treeLayer1Position.z + treeLayer1Scale.z) {
-                std::cout << "Collision detected with layer1 of tree " << i << std::endl;
-                return true; // Collision detected with tree layer1
-            }
+        // Check collision with the leaf base of the tree
+        glm::vec3 treeLeafBasePosition(treePos.x, treePos.y + 5.5f, treePos.z);
+        glm::vec3 treeLeafBaseScale(3.0f, 2.0f, 3.0f);
+        if (newPosition.x > treeLeafBasePosition.x - treeSize && newPosition.x < treeLeafBasePosition.x + treeSize &&
+            newPosition.y > treeLeafBasePosition.y && newPosition.y < treeLeafBasePosition.y + treeLeafBaseScale.y &&
+            newPosition.z > treeLeafBasePosition.z - treeSize && newPosition.z < treeLeafBasePosition.z + treeSize) {
+            std::cout << "Collision detected with leaf base of tree" << std::endl;
+            return true; // Collision detected with tree leaf base
+        }
 
-            // Check collision with layer2 of the tree
-            glm::vec3 treeLayer2Position(-350.0f + j * 35.0f, 17.0f, -350.0f + i * 35.0f);
-            glm::vec3 treeLayer2Scale(6.0f, 2.0f, 6.0f);
-            if (newPosition.x > treeLayer2Position.x - treeLayer2Scale.x &&
-                newPosition.x < treeLayer2Position.x + treeLayer2Scale.x &&
-                newPosition.y > treeLayer2Position.y &&
-                newPosition.y < treeLayer2Position.y + treeLayer2Scale.y &&
-                newPosition.z > treeLayer2Position.z - treeLayer2Scale.z &&
-                newPosition.z < treeLayer2Position.z + treeLayer2Scale.z) {
-                std::cout << "Collision detected with layer2 of tree " << i << std::endl;
-                return true; // Collision detected with tree layer2
-            }
+        // Check collision with the leaf top of the tree
+        glm::vec3 treeLeafTopPosition(treePos.x, treePos.y + 7.0f, treePos.z);
+        glm::vec3 treeLeafTopScale(1.5f, 1.0f, 1.5f);
+        if (newPosition.x > treeLeafTopPosition.x - treeSize && newPosition.x < treeLeafTopPosition.x + treeSize &&
+            newPosition.y > treeLeafTopPosition.y && newPosition.y < treeLeafTopPosition.y + treeLeafTopScale.y &&
+            newPosition.z > treeLeafTopPosition.z - treeSize && newPosition.z < treeLeafTopPosition.z + treeSize) {
+            std::cout << "Collision detected with leaf top of tree" << std::endl;
+            return true; // Collision detected with tree leaf top
         }
     }
 
-    // Check collision with ground (assuming ground is at y = 0)
-    if (newPosition.y < -0.01f) {
-        std::cout << "Collision detected with ground" << std::endl;
-        return true; // Collision with ground
+    // Check collision with ground (assuming the ground is represented by the chunk-based system)
+    int x = static_cast<int>(newPosition.x);
+    int z = static_cast<int>(newPosition.z);
+    if (x >= 0 && x < map.width && z >= 0 && z < map.height) {
+        int columnHeight = static_cast<int>(map.heightmap[x][z]);
+        if (newPosition.y < columnHeight * CHUNK_SIZE) {
+            std::cout << "Collision detected with ground" << std::endl;
+            return true; // Collision with ground
+        }
     }
 
     return false; // No collision
@@ -402,7 +395,7 @@ int main(int argc, char*argv[])
         {
             glm::vec3 newCameraPosition = cameraPosition - cameraSideVector * currentCameraSpeed * dt;
 
-            if (!checkCollision(newCameraPosition))  // Implement this function to check for collisions
+            if (!checkCollision(newCameraPosition, treePositions, map, chunkSize))  // Implement this function to check for collisions
                 cameraPosition = newCameraPosition;
         }
 
@@ -410,7 +403,7 @@ int main(int argc, char*argv[])
         {
             glm::vec3 newCameraPosition = cameraPosition + cameraSideVector * currentCameraSpeed * dt;
 
-            if (!checkCollision(newCameraPosition))  // Implement this function to check for collisions
+            if (!checkCollision(newCameraPosition, treePositions, map, chunkSize))  // Implement this function to check for collisions
                 cameraPosition = newCameraPosition;
         }
 
@@ -418,7 +411,7 @@ int main(int argc, char*argv[])
         {
             glm::vec3 newCameraPosition = cameraPosition - cameraLookAt * currentCameraSpeed * dt;
 
-            if (!checkCollision(newCameraPosition))  // Implement this function to check for collisions
+            if (!checkCollision(newCameraPosition, treePositions, map, chunkSize))  // Implement this function to check for collisions
                 cameraPosition = newCameraPosition;
         }
 
@@ -426,7 +419,7 @@ int main(int argc, char*argv[])
         {
             glm::vec3 newCameraPosition = cameraPosition + cameraLookAt * currentCameraSpeed * dt;
 
-            if (!checkCollision(newCameraPosition))  // Implement this function to check for collisions
+            if (!checkCollision(newCameraPosition, treePositions, map, chunkSize))  // Implement this function to check for collisions
                 cameraPosition = newCameraPosition;
         }
         mat4 viewMatrix =  lookAt(cameraPosition, cameraPosition + cameraLookAt, cameraUp);
