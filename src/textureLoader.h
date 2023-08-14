@@ -4,6 +4,9 @@
 #include <GL/glew.h>// GLM is an optimized math library with syntax to similar to OpenGL Shading Language
 #include <glm/glm.hpp>  
 #include <vector>
+#include <string>
+
+using namespace std;
 
 struct HeightMap {
     float** heightmap;
@@ -11,7 +14,7 @@ struct HeightMap {
     int height;
 };
 
-float** generateHeightmap(std::string filename, int& width, int& height);
+float** generateHeightmap(int& width, int& height, int octaves, float persistence, float scale);
 
 GLuint loadTexture(const char *filename);
 

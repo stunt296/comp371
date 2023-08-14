@@ -5,58 +5,57 @@
 #include <glm/common.hpp>
 #include <vector>
 #include <iostream>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
+#include <glm/gtc/noise.hpp>
+
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
-
-using namespace std;
-
 #include "textureLoader.h"
 
 
 
-float** generateHeightmap(std::string filename, int& width, int& height) {
-    
-        // Load image
-    #if defined(__APPLE__)
-        std::string folderPath = "assets/Textures/";
-    #else
-      std::string folderPath = "../Assets/Textures/";
-    #endif
+// Generate a procedural heightmap using Perlin noise
+float** generateHeightmap(int& width, int& height, int octaves, float persistence, float scale) {
+    // Initialize random seed
+    srand(static_cast<unsigned int>(time(nullptr)));
 
-    std::string imagePath = folderPath + filename;
-
-    // Load the image using stb_image
-    int channels;
-    unsigned char* imageData = stbi_load(imagePath.c_str(), &width, &height, &channels, 1);
+    // Set width and height
+    width = 256;
+    height = 256;
 
     // Create the 2D array to store height values
-    float** heightmap = new float*[width];
+    float** heightmap = new float* [width];
     for (int i = 0; i < width; ++i) {
         heightmap[i] = new float[height];
     }
 
-    // Define the desired height range
-    const float minHeight = 0.0f;
-    const float maxHeight = 20.0f;
-
-    // Process imageData and populate the heightmap array
+    // Generate procedural heightmap using Perlin noise
     for (int x = 0; x < width; ++x) {
         for (int z = 0; z < height; ++z) {
-            // Calculate grayscale value and map to height range
-            unsigned char grayscaleValue = imageData[x * height + z];
-            float normalizedHeight = static_cast<float>(grayscaleValue) / 255.0f;
-            float height = minHeight + normalizedHeight * (maxHeight - minHeight); // Map to desired range
+            float amplitude = 1.3f;
+            float frequency = 1.2f;
+            float noiseHeight = 0.0f;
+
+            // Generate multiple octaves of Perlin noise
+            for (int o = 0; o < octaves; ++o) {
+                float sampleX = x / scale * frequency;
+                float sampleZ = z / scale * frequency;
+                float perlinValue = glm::perlin(glm::vec2(sampleX, sampleZ)) * 0.5f + 0.5f;
+
+                noiseHeight += perlinValue * amplitude;
+                amplitude *= persistence;
+                frequency *= 2.0f;
+            }
 
             // Store height value in heightmap
-            heightmap[x][z] = height;
+            heightmap[x][z] = noiseHeight;
         }
     }
 
-    // Clean up the loaded image data
-    stbi_image_free(imageData);
-
-    // Return the generated heightmap array
     return heightmap;
 }
 

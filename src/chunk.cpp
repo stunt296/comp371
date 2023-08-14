@@ -12,6 +12,11 @@
 #include "tree.h"
 #include "chunk.h"
 
+using namespace std;
+
+int octaves = 15;
+float persistence = 1.05;
+float scale = 15.0f;
 
 void setChunkWorldMatrix(int shaderProgram, glm::mat4 worldMatrix)
 {
@@ -63,9 +68,9 @@ HeightMap initHeightMap()
     //"Heightmap2.jpg"
     //"Heightmap3.jpg"
     //"Heightmap4.jpg"
-    std::string filename = "Heightmap4.jpg";
+   // std::string filename = "Heightmap4.jpg";
     HeightMap map;
-    map.heightmap = generateHeightmap(filename, map.width, map.height);
+    map.heightmap = generateHeightmap(map.width, map.height, octaves, persistence, scale);
     return  map;
 }
 
@@ -95,7 +100,7 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT, HeightMap map
 
     // initialize faces enum
     Faces currentFace;
-    const int waterLevel = findSmallestValue(heightmap, SIZE, SIZE) + 1;
+    const int waterLevel = findSmallestValue(heightmap, SIZE, SIZE) + 4;
     bool isWater = false;
     // vector that stores 2d position of trees
     
