@@ -14,6 +14,7 @@ using namespace std;
 #include "textureLoader.h"
 
 
+
 float** generateHeightmap(std::string filename, int& width, int& height) {
     
         // Load image
@@ -58,6 +59,7 @@ float** generateHeightmap(std::string filename, int& width, int& height) {
     // Return the generated heightmap array
     return heightmap;
 }
+
 
 
 GLuint loadTexture(const char *filename)

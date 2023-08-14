@@ -4,7 +4,6 @@
 #include <glm/gtc/matrix_transform.hpp> // include this to create transformation matrices
 #include <glm/common.hpp>
 #include <vector>
-
 #include <iostream>
 
 #include "cube.h"
@@ -58,7 +57,20 @@ int findSmallestValue(float** heightmap, int width, int height) {
 }
 
 
-void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT)
+HeightMap initHeightMap()
+{
+    // get heightmap
+    //"Heightmap2.jpg"
+    //"Heightmap3.jpg"
+    //"Heightmap4.jpg"
+    std::string filename = "Heightmap4.jpg";
+    HeightMap map;
+    map.heightmap = generateHeightmap(filename, map.width, map.height);
+    return  map;
+}
+
+
+void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT, HeightMap map )
 {
     glBindVertexArray(vao);
 
@@ -77,18 +89,16 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT)
     GLint colLocation = glGetUniformLocation(shaderProgram, "col");
     glUniform3f(colLocation, 0.4f, 0.26f, 0.13f); //brown
     
+    float** heightmap = map.heightmap;
+    int width = map.width;
+    int height = map.height;
 
-    // get heightmap
-    //"Heightmap2.jpg"
-    //"Heightmap3.jpg"
-    //"Heightmap4.jpg"
-    std::string filename = "Heightmap4.jpg";
-    int width, height; // this is x and z of heightmap image
-    float** heightmap = generateHeightmap(filename, width, height);
     // initialize faces enum
     Faces currentFace;
-    const int waterLevel = findSmallestValue(heightmap, width, height) + 1;
+    const int waterLevel = findSmallestValue(heightmap, SIZE, SIZE) + 1;
     bool isWater = false;
+    // vector that stores 2d position of trees
+    
 
 
     for(int x = 0; x < SIZE; x++)
@@ -98,20 +108,19 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT)
             
             int columnHeight = static_cast<int>(heightmap[x][z]);
             glUniform3f(colLocation, 0.76f, 0.70f, 0.5f); //beige
-            // floor faces
-            // qualifications: is highest in chunk
+            // lowest faces (TOP)
+            // qualifications: is highest in chunk at height 0
             if (columnHeight == 0)
             {
                 currentFace = TOP;
                 drawFace(currentFace, isWater, x, -1, z, shaderProgram);
 
                 setTransparency(shaderProgram, 1.0f); // make transparent
-                //glBindTexture(GL_TEXTURE_2D, waterTextureID);
                 glUniform3f(colLocation, 0.11f, 0.58, 0.88f); //blue
                 drawFace(currentFace, true, x, waterLevel, z, shaderProgram);
                 setTransparency(shaderProgram, 0.0f); // remove transparent 
             }
-            //glBindTexture(GL_TEXTURE_2D, cementTextureID);
+            //side faces (LEFT)
             for(int y = 0; y < columnHeight; y++)
             {
                 if ( y < waterLevel) glUniform3f(colLocation, 0.76f, 0.70f, 0.5f); //beige
@@ -128,7 +137,7 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT)
                         drawFace(currentFace, isWater, x, y, z, shaderProgram);
                     }
                 }
-                // left faces
+                // side faces (right)
                 // qualifications: block to the left is empty, not furthest left in chunk
                 if (x < SIZE-1)
                 {
@@ -139,7 +148,7 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT)
                         drawFace(currentFace, isWater, x, y, z, shaderProgram);
                     }
                 }
-                 // back faces
+                 // side faces (back)
                 // qualifications: block to the back is empty, not furthest back in chunk
                 if (z > 0)
                 {
@@ -150,7 +159,7 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT)
                         drawFace(currentFace, isWater, x, y, z, shaderProgram);
                     }
                 }
-                // front faces
+                // side faces (front)
                 // qualifications: block to the front is empty, not furthest front in chunk
                 if (z < SIZE-1)
                 {
@@ -164,7 +173,7 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT)
                 
                 if ( y < waterLevel) glUniform3f(colLocation, 0.76f, 0.70f, 0.5f); //beige
                 else glUniform3f(colLocation, 0.13f, 0.55, 0.0f); //green
-                // top faces
+                // TOP faces
                 // qualifications: is highest in chunk
                 if (y == (columnHeight - 1))
                 {
@@ -174,29 +183,13 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT)
                     if (y < waterLevel) 
                     {
                         setTransparency(shaderProgram, 1.0f); // make transparent
-                        //glBindTexture(GL_TEXTURE_2D, waterTextureID);
                         glUniform3f(colLocation, 0.11f, 0.58, 0.88f); //blue
                         drawFace(currentFace, true, x, waterLevel, z, shaderProgram);
                         setTransparency(shaderProgram, 0.0f); // remove transparent 
                     }
-                }
-                
-                
-                
+                }  
             }
         }
     }
-
-
-
-
-
-   
-//  clean up the heightmap array when done using it
-    for (int i = 0; i < width; ++i) {
-        delete[] heightmap[i];
-    }
-    delete[] heightmap;
-
 
 }

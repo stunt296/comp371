@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>  
 #include <vector>
 
+
 // associated number refers to the index where that face starts in the texturedCubeVertexArray[]
 enum Faces{ 
     LEFT = 0, 
@@ -24,7 +25,9 @@ void drawFace(Faces face, bool isWater, int x, int y, int z, int shaderProgram);
 
 int findSmallestValue(float** heightmap, int width, int height);
 
-void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT);
+HeightMap initHeightMap();
+
+void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT, HeightMap map );
 
 
 #endif // CHUNK_H
