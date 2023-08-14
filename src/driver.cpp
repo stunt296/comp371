@@ -146,7 +146,7 @@ bool checkCollision(const glm::vec3& newPosition, const std::vector<Position3D>&
         }
     }
 
-    // Check collision with ground (assuming the ground is represented by the chunk-based system)
+    // Check collision with ground
     int x = static_cast<int>(newPosition.x);
     int z = static_cast<int>(newPosition.z);
     if (x >= 0 && x < map.width && z >= 0 && z < map.height) {
