@@ -5,6 +5,12 @@
 #include <glm/glm.hpp>  
 #include <vector>
 
+struct HeightMap {
+    float** heightmap;
+    int width;
+    int height;
+};
+
 float** generateHeightmap(std::string filename, int& width, int& height);
 
 GLuint loadTexture(const char *filename);

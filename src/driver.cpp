@@ -91,7 +91,7 @@ void setWorldTransparency(int shaderProgram, float transparent)
 // initializing parameters
 
 const unsigned int DEPTH_MAP_TEXTURE_SIZE = 1024;
-const int chunkSize = 45;
+const int chunkSize = 40;
 const int chunkHeight = 32;
 
 // texture handling
@@ -99,13 +99,19 @@ bool LightEnabled = true;
 GLfloat is_tex = 0.0f;
 
 // Camera parameters for view transform
-vec3 cameraPosition(20.0f, 20.0f, 20.0f);
+vec3 cameraPosition(45.0f, 20.0f, 45.0f);
 vec3 cameraLookAt(0.0f, -18.0f, 0.0f);
 vec3 cameraUp(0.0f, 1.0f, 0.0f);
 
+// set heightmap
+HeightMap map = initHeightMap();
+
+// tree position map
+std::vector<Position3D>  treePositions = createTreePositions(chunkSize, map);
+
 bool checkCollision(const glm::vec3& newPosition) {
     // Check collision with trees
-    const int numTrees = 625; // Update with the actual number of trees in the scene (to be replaced with treeCounter)
+    const int numTrees = getTreeCount(); // Update with the actual number of trees in the scene (to be replaced with treeCounter)
     //std::cout << "Trees:  " << treeCounter << std::endl;
 
     // Check collision with the trunk, layer1, and layer2 of each tree
@@ -216,7 +222,7 @@ int main(int argc, char*argv[])
     // Other camera parameters
     float cameraSpeed = 10.0f;
     float cameraFastSpeed = 2 * cameraSpeed;
-    float cameraHorizontalAngle = 90.0f;
+    float cameraHorizontalAngle = 135.0f;
     float cameraVerticalAngle = 0.0f;
 
     
@@ -337,8 +343,8 @@ int main(int argc, char*argv[])
 
         renderSkyBox(SkyTextureID, texturedShaderProgram, texturedCubeVAO );
         //renderGround(texturedShaderProgram, texturedCubeVAO);
-        //renderTree(texturedShaderProgram, texturedCubeVAO);
-        renderChunk(texturedShaderProgram, texturedCubeVAO, chunkSize, chunkHeight);
+        renderChunk(texturedShaderProgram, texturedCubeVAO, chunkSize, chunkHeight, map);
+        renderTrees(texturedShaderProgram, texturedCubeVAO, chunkSize, map, treePositions);
 
         
         // End Frame
