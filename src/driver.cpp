@@ -110,6 +110,7 @@ HeightMap map = initHeightMap();
 // tree position map
 std::vector<Position3D>  treePositions = createTreePositions(chunkSize, map);
 
+// collision
 bool checkCollision(const glm::vec3& newPosition, const std::vector<Position3D>& treePosition, HeightMap map, int CHUNK_SIZE) {
     // Check collision with the different parts of the trees
     const float treeSize = 3.0f; // Adjust as needed
@@ -149,9 +150,9 @@ bool checkCollision(const glm::vec3& newPosition, const std::vector<Position3D>&
     // Check collision with ground
     int x = static_cast<int>(newPosition.x);
     int z = static_cast<int>(newPosition.z);
-    if (x >= 0 && x < map.width && z >= 0 && z < map.height) {
+    if (x >= 0 && x < chunkSize && z >= 0 && z < chunkSize) {
         int columnHeight = static_cast<int>(map.heightmap[x][z]);
-        if (newPosition.y < columnHeight * CHUNK_SIZE) {
+        if (newPosition.y < columnHeight) {
             std::cout << "Collision detected with ground" << std::endl;
             return true; // Collision with ground
         }
