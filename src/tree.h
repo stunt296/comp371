@@ -12,17 +12,34 @@ struct Position3D {
     int y;
     int z;
     TreeType tree;
+    float scalar;
+    glm::vec3 brown;
+    glm::vec3 green;
 };
+
+const glm::vec3 BrownValues[] = {
+    glm::vec3(0.8039f, 0.5216f, 0.2471f), // Basic
+    glm::vec3(0.25f, 0.01f, 0.0f),         // Dark
+    glm::vec3(0.73f, 0.62f, 0.51f)        // Light
+};
+
+const glm::vec3 GreenValues[] = {
+    glm::vec3(0.0f, 1.0f, 0.0f),        // Basic
+    glm::vec3(0.42f, 0.56f, 0.14f),     // Dark
+    glm::vec3(0.6f, 0.8f, 0.2f)         // Light
+};
+
+
 
 int getTreeCount();
 
 void setTreeWorldMatrix(int shaderProgram, glm::mat4 worldMatrix);
 
-void drawBasicTree(int shaderProgram, int x, int y, int z, GLint colLocation);
+void drawBasicTree(int shaderProgram, int x, int y, int z, GLint colLocation, Position3D pos);
 
-void drawDarkTree(int shaderProgram, int x, int y, int z, GLint colLocation);
+void drawDarkTree(int shaderProgram, int x, int y, int z, GLint colLocation, Position3D pos);
 
-void drawLightTree(int shaderProgram, int x, int y, int z, GLint colLocation);
+void drawLightTree(int shaderProgram, int x, int y, int z, GLint colLocation, Position3D pos);
 
 float randomFloat(float min, float max);
 

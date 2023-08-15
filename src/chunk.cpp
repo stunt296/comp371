@@ -14,7 +14,7 @@
 
 using namespace std;
 
-int octaves = 15;
+int octaves = 5;
 float persistence = 1.05;
 float scale = 15.0f;
 
@@ -112,19 +112,6 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT, HeightMap map
         {
             
             int columnHeight = static_cast<int>(heightmap[x][z]);
-            glUniform3f(colLocation, 0.76f, 0.70f, 0.5f); //beige
-            // lowest faces (TOP)
-            // qualifications: is highest in chunk at height 0
-            if (columnHeight == 0)
-            {
-                currentFace = TOP;
-                drawFace(currentFace, isWater, x, -1, z, shaderProgram);
-
-                setTransparency(shaderProgram, 1.0f); // make transparent
-                glUniform3f(colLocation, 0.11f, 0.58, 0.88f); //blue
-                drawFace(currentFace, true, x, waterLevel, z, shaderProgram);
-                setTransparency(shaderProgram, 0.0f); // remove transparent 
-            }
             //side faces (LEFT)
             for(int y = 0; y < columnHeight; y++)
             {
@@ -184,14 +171,6 @@ void renderChunk(int shaderProgram, int vao, int SIZE, int HEIGHT, HeightMap map
                 {
                     currentFace = TOP;
                     drawFace(currentFace, isWater, x, y, z, shaderProgram);
-                    // basically, if the top of the stack is below water level, get water
-                    if (y < waterLevel) 
-                    {
-                        setTransparency(shaderProgram, 1.0f); // make transparent
-                        glUniform3f(colLocation, 0.11f, 0.58, 0.88f); //blue
-                        drawFace(currentFace, true, x, waterLevel, z, shaderProgram);
-                        setTransparency(shaderProgram, 0.0f); // remove transparent 
-                    }
                 }  
             }
         }
